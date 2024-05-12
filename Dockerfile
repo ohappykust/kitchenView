@@ -1,22 +1,16 @@
-FROM python:3.10-alpine
+FROM python:3.11-alpine
 
-ARG DOCKER_TAG
-ARG TZ=Europe/Moscow
-
-ENV APP_VERSION ${DOCKER_TAG}
-ENV TZ ${TZ}
-
-WORKDIR /backend
+WORKDIR /kitchenView
 
 RUN pip install --upgrade pip
-
-RUN apk add gcc musl-dev libffi-dev
-RUN apk add openssl=3.1.4-r6 --update
-
 RUN pip install poetry && poetry config virtualenvs.create false
 
-COPY . /backend
+RUN mkdir static && mkdir kitchenView
+
+COPY ./poetry.lock ./pyproject.toml /kitchenView/
 
 RUN poetry install --no-interaction
 
-ENV PYTHONPATH=/backend
+COPY ./kitchenView /kitchenView/kitchenView
+
+CMD ["uvicorn", "kitchenView.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

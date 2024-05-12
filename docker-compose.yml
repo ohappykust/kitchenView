@@ -1,0 +1,56 @@
+version: "3.7"
+
+services:
+  nginx:
+    image: nginx
+    container_name: "kitchenView-nginx"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+#    depends_on:
+#      - frontend
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+
+  backend:
+    container_name: "kitchenView"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: docker/.env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./kitchenView:/kitchenView/kitchenView
+    depends_on:
+      - database
+
+  database:
+    container_name: "kitchenView-db"
+    image: postgres:15.1-alpine
+    env_file: docker/.env
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    volumes:
+      - kitchenView_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    container_name: "kitchenView-frontend"
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    env_file: docker/.env
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  kitchenView_data:

@@ -3,8 +3,13 @@ from pydantic import BaseModel, Field
 
 class RecipeComponentMeasureUnit(BaseModel):
     name: str
-    nameFive: str
-    nameTwo: str
+    name_five: str
+    name_two: str
+
+    def __init__(self, **kwargs):
+        kwargs["name_five"] = kwargs["nameFive"]
+        kwargs["name_two"] = kwargs["nameTwo"]
+        super().__init__(**kwargs)
 
 
 class RecipeComponent(BaseModel):
@@ -34,12 +39,12 @@ class RecipeNutritionInfo(BaseModel):
     proteins: float
 
 
-class Recipe(BaseModel):
+class ERRecipe(BaseModel):
     name: str
     image_url: str = Field(source="recipeCover.imageUrl")
     components: list[RecipeComponent]
     category: str
-    kitchen: str
+    kitchen: str | None
     portions_count: float
     preparation_time_minutes: int
     cooking_time_minutes: int
@@ -54,7 +59,7 @@ class Recipe(BaseModel):
         kwargs["image_url"] = body["recipeCover"]["imageUrl"]
         kwargs["components"] = body["composition"]
         kwargs["category"] = body["recipeCategory"]["name"]
-        kwargs["kitchen"] = body["cuisine"]["name"]
+        kwargs["kitchen"] = body["cuisine"]["name"] if "cuisine" in body.keys() and body["cuisine"] is not None else None
         kwargs["likes"] = body["likes"]
         kwargs["dislikes"] = body["dislikes"]
         kwargs["portions_count"] = body["portionsCount"]
@@ -66,8 +71,8 @@ class Recipe(BaseModel):
         super().__init__(**kwargs)
 
 
-class RecipesList(BaseModel):
-    recipes: list[Recipe]
+class ERRecipesList(BaseModel):
+    recipes: list[ERRecipe]
 
     def __init__(self, **kwargs):
         kwargs["recipes"] = kwargs["data"]["recipes"]["edges"]
