@@ -28,7 +28,7 @@ class RecipeComponentSchema(BaseModel):
 
 
 class RecipeStepSchema(BaseModel):
-    description: str
+    description: str | None = None
     image_url: str | None = None
 
     class Meta:
@@ -47,7 +47,7 @@ class RecipeNutritionInfoSchema(BaseModel):
 
 class RecipeCreateSchema(BaseModel):
     name: str
-    image_url: str
+    image_url: str | None
     components: list[RecipeComponentSchema]
     category: str
     kitchen: str | None

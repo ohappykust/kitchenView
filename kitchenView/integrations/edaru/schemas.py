@@ -24,7 +24,7 @@ class RecipeComponent(BaseModel):
 
 
 class RecipeStep(BaseModel):
-    description: str
+    description: str | None
     image_url: str | None
 
     def __init__(self, **kwargs):
@@ -41,7 +41,7 @@ class RecipeNutritionInfo(BaseModel):
 
 class ERRecipe(BaseModel):
     name: str
-    image_url: str = Field(source="recipeCover.imageUrl")
+    image_url: str | None = Field(source="recipeCover.imageUrl")
     components: list[RecipeComponent]
     category: str
     kitchen: str | None
@@ -56,7 +56,7 @@ class ERRecipe(BaseModel):
     def __init__(self, **kwargs):
         body = kwargs["node"]
         kwargs["name"] = body["name"]
-        kwargs["image_url"] = body["recipeCover"]["imageUrl"]
+        kwargs["image_url"] = body["recipeCover"]["imageUrl"] if "recipeCover" in body.keys() and body["recipeCover"] is not None else None
         kwargs["components"] = body["composition"]
         kwargs["category"] = body["recipeCategory"]["name"]
         kwargs["kitchen"] = body["cuisine"]["name"] if "cuisine" in body.keys() and body["cuisine"] is not None else None

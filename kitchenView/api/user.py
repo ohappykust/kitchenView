@@ -23,7 +23,7 @@ router = APIRouter()
 @router.get("/", response_model=list[UserPublicSchema])
 def get_all_users(
         db: scoped_session = Depends(get_session)
-) -> list[dict]:
+) -> list[User]:
     return db.query(User).all()
 
 
@@ -31,9 +31,9 @@ def get_all_users(
 def create_user(
         user: UserCreateSchema,
         db: scoped_session = Depends(get_session)
-) -> dict:
+) -> User:
     users = db.query(User).all()
-    db_user = User(**user.dict())
+    db_user = User(**user.model_dump())
     if len(users) == 0:
         db_user.is_admin = True
     if db_user.pin is not None:
@@ -57,7 +57,7 @@ def login(
     if not (user := authenticate_user(db, data.id, data.pin)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect id or pin",
+            detail="Неверный пин-код",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return {"access_token": create_access_token(data={"sub": user.id})}
+    return {"access_token": create_access_token(data={"sub": str(user.id)})}

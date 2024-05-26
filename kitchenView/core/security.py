@@ -1,27 +1,30 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+from jose import jwt, JWTError
 
+from starlette import status
 from fastapi import HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
-from passlib.context import CryptContext
 from sqlalchemy.orm import scoped_session
-from starlette import status
 
 from kitchenView.core.deps import get_session
-
 from kitchenView.core.config import get_config
 from kitchenView.models.user import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+config = get_config()
 
-SECRET_KEY = get_config().SECRET_KEY
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+reusable_oauth2 = OAuth2PasswordBearer(
+    tokenUrl=f"/api/users/login"
+)
+
+SECRET_KEY = config.SECRET_KEY
 ALGORITHM = "HS256"
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=180)
+    expire = datetime.now() + timedelta(minutes=180)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -43,20 +46,21 @@ def authenticate_user(db: scoped_session, user_id: int, pin: str) -> User | bool
     return user
 
 
-def get_current_user(request: Request):
+async def get_current_user(request: Request):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
     )
     try:
-        payload = jwt.decode(request.cookies.get("session", ""), SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
+        payload = jwt.decode(await reusable_oauth2(request), SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(e)
         raise credentials_exception
     db = next(get_session())
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == str(user_id)).first()
     if user is None:
         raise credentials_exception
     return user

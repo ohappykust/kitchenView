@@ -24,7 +24,8 @@ services:
     volumes:
       - ./kitchenView:/kitchenView/kitchenView
     depends_on:
-      - database
+      database:
+        condition: service_started
 
   database:
     container_name: "kitchenView-db"
@@ -35,12 +36,6 @@ services:
     restart: unless-stopped
     volumes:
       - kitchenView_data:/var/lib/postgresql/data
-    healthcheck:
-      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
   frontend:
     container_name: "kitchenView-frontend"
