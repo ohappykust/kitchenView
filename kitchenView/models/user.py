@@ -10,7 +10,7 @@ recipes_association = Table(
     Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
     Column('recipe_id', Integer, ForeignKey('recipes.id'))
-    )
+)
 
 
 class User(Base):
