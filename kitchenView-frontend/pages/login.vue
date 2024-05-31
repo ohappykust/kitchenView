@@ -1,12 +1,11 @@
-<script setup lang="ts">
+<script async setup lang="ts">
 import 'ldrs/bouncy';
 import {PinPanel} from "~/components/ui/pin-panel";
 import { ExclamationTriangleIcon } from '@radix-icons/vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type {IUserPublic} from "~/interfaces/user.interface";
 
-const users = useState<IUserPublic[]>("users");
-if (users.value.length === 0 ) navigateTo("/init");
+const userStore = useUserStore();
+if (userStore.users.length === 0 ) navigateTo("/init");
 
 const selected_user_id = ref<number | null>(null);
 const set_user_id = async (user_id: number) => {
@@ -14,7 +13,7 @@ const set_user_id = async (user_id: number) => {
   if (!selected_user.value?.pin) await login();
 };
 const clear_user_id = () => selected_user_id.value = null;
-const selected_user = computed(() => users.value?.find((u) => u.id === selected_user_id.value));
+const selected_user = computed(() => userStore.users?.find((u) => u.id === selected_user_id.value));
 const loginError = ref<any>(null);
 
 const login = async (pin: string | null = null) => {

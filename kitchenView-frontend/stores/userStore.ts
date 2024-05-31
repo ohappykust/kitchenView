@@ -7,6 +7,9 @@ import type { IUser, IUserTokens } from "~/interfaces/user.interface";
 
 export const useUserStore = defineStore('user', {
   state: (): IUserStore => ({
+    users: [],
+    usersIsLoading: false,
+    usersLoadingError: null,
     user: null,
     userLoadingError: null,
     userIsLoading: false,
@@ -23,6 +26,15 @@ export const useUserStore = defineStore('user', {
         this.userLoadingError = error;
       }
       this.userIsLoading = false;
+    },
+    async getAllUsers() {
+      this.usersIsLoading = true;
+      try {
+        this.users = await useAuthedFetch<IUser[]>('/users');
+      } catch (error) {
+        this.usersLoadingError = error;
+      }
+      this.usersIsLoading = false;
     },
     async logout() {
       this.clearLocalStorage();
