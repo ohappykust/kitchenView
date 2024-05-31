@@ -4,10 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button'
 import { PinPanel } from "~/components/ui/pin-panel";
 
-import type {IUserCreate, IUserPublic} from "~/interfaces/user.interface";
+import type { IUserCreate } from "~/interfaces/user.interface";
 
-const users = useState<IUserPublic[]>("users");
-if (users.value.length > 0 ) navigateTo("/login");
+const userStore = useUserStore();
+if (userStore.users?.length > 0 ) navigateTo("/login");
 
 const stage = ref<number>(1);
 const loading = ref<boolean>(false);
